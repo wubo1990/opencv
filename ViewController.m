@@ -24,6 +24,8 @@ int board_w;
 int board_h;
 cv::Size board_sz;
 float square_sz = 50;
+int imageCount = 0;
+
 
 
 - (void)viewDidLoad
@@ -145,7 +147,7 @@ float square_sz = 50;
     board_sz = cvSize(board_w, board_h);
     
     //imapge points
-    cv::vector<cv::vector<cv::Point2f> > imagePoints;
+    std::vector<std::vector<cv::Point2f> > imagePoints;
     cv::Mat cameraMatrix, distCoeffs;
     cv::Size imageSize;
 //    clock_t prevTimestamp = 0;
@@ -154,21 +156,19 @@ float square_sz = 50;
     const cv::Scalar RED(0,0,255), GREEN(0,255,0);
 //    const char ESC_KEY = 27;
 
-    
-    //for(int i = 0;;++i)
-    //{
-        cv::Mat view;
-        view = image;
-        //bool blinkOutput = false;
+    for(int i = 0;;++i)
+    {
         
-        //view = [self nextView];
-    
-    
-    
-    
+        //Capturing the images for calibration
+        //if (imagePoints.size() >= 25) {
+        if (imageCount >= 25){
+            if ([self runCalibrationAndOutputWithImageSize:imageSize andCameraMatrix:cameraMatrix andDist:distCoeffs andImagePoints:imagePoints]) {
+                return;
+            }
+        }
         
         // If no more images then run calibration, save and stop loop.
-        if(view.empty())
+        if(image.empty())
         {
 
             if( imagePoints.size() > 0 )
@@ -176,15 +176,15 @@ float square_sz = 50;
             //break;
         }
         
-        imageSize = view.size();
+        imageSize = image.size();
         
-        cv::vector<cv::Point2f> pointBuf;
+        std::vector<cv::Point2f> pointBuf;
         NSLog(@"Calibation........");
-        bool found = findChessboardCorners( view, board_sz, pointBuf,
+        bool found = findChessboardCorners( image, board_sz, pointBuf,
                                          CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FAST_CHECK | CV_CALIB_CB_NORMALIZE_IMAGE);
             if (found) {
                 cv::Mat viewGray;
-                cv::cvtColor(view, viewGray, cv::COLOR_BGR2GRAY);
+                cv::cvtColor(image, viewGray, cv::COLOR_BGR2GRAY);
                 cornerSubPix( viewGray, pointBuf, cvSize(11,11),
                          cvSize(-1,-1), cv::TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1));
                 //std::cout<<pointBuf[1]<<' ';
@@ -195,27 +195,25 @@ float square_sz = 50;
         imagePoints.push_back(pointBuf);
         std::cout<<imagePoints.size()<<' ';
     
-        drawChessboardCorners( view, board_sz, cv::Mat(pointBuf), found);
+        drawChessboardCorners( image, board_sz, cv::Mat(pointBuf), found);
     
-    //Capturing the images for calibration
-    if (imagePoints.size() != 0) {
-        
-        if ([self runCalibrationAndOutputWithImageSize:imageSize andCameraMatrix:cameraMatrix andDist:distCoeffs andImagePoints:imagePoints]) {
-            return;
-        }
+    
+    imageCount++;
+    std::cout<<imageCount<<' ';
     }
-    //}
+    
+    
 }
 
-- (double)computeReprojectionErrorsWithobjectPoints:(cv::vector<cv::vector<cv::Point3f>>&) objectPoints
-                                     andImagePoints:(cv::vector<cv::vector<cv::Point2f>>&) imagePoints
-                                        andRotation:(cv::vector<cv::Mat>&) rvecs
-                                     andTranslation:(cv::vector<cv::Mat>&) tvecs
+- (double)computeReprojectionErrorsWithobjectPoints:(std::vector<std::vector<cv::Point3f>>&) objectPoints
+                                     andImagePoints:(std::vector<std::vector<cv::Point2f>>&) imagePoints
+                                        andRotation:(std::vector<cv::Mat>&) rvecs
+                                     andTranslation:(std::vector<cv::Mat>&) tvecs
                                     andCameraMatrix:(cv::Mat&) cameraMatrix
                                             andDist:(cv::Mat&) distCoeffs
-                                       andPerErrors:(cv::vector<float>&) perViewErrors
+                                       andPerErrors:(std::vector<float>&) perViewErrors
 {
-    cv::vector<cv::Point2f> imagePoints2;
+    std::vector<cv::Point2f> imagePoints2;
     int i, totalPoints = 0;
     double totalErr = 0, err;
     perViewErrors.resize(objectPoints.size());
@@ -231,12 +229,12 @@ float square_sz = 50;
         totalErr        += err*err;
         totalPoints     += n;
     }
-    return sqrt(totalErr/totalPoints);;
+    return std::sqrt(totalErr/totalPoints);;
 }
 
 - (void) calcBoardCornerPositionsWithBoardSize:(cv::Size &)boardSize
                                  andSquareSize:(float)squareSize
-                                     andConers:(cv::vector<cv::Point3f>&) corners
+                                     andConers:(std::vector<cv::Point3f>&) corners
 {
     corners.clear();
 }
@@ -244,10 +242,10 @@ float square_sz = 50;
 - (BOOL) runCalibrationWithImageSize:(cv::Size &)imageSize
                      andCameraMatrix:(cv::Mat &)cameraMatrix
                              andDist:(cv::Mat &)distCoeffs
-                      andImagePoints:(cv::vector<cv::vector<cv::Point2f>> &)imagePoints
-                         andRotation:(cv::vector<cv::Mat>&) rvecs
-                      andTranslation:(cv::vector<cv::Mat>&) tvecs
-                            andError:(cv::vector<float>&)reprojErrs
+                      andImagePoints:(std::vector<std::vector<cv::Point2f>> &)imagePoints
+                         andRotation:(std::vector<cv::Mat>&) rvecs
+                      andTranslation:(std::vector<cv::Mat>&) tvecs
+                            andError:(std::vector<float>&)reprojErrs
                          andTotalErr:(double &)totalAvgErr
 {
     cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
@@ -256,8 +254,10 @@ float square_sz = 50;
     }
     
     distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
-    cv::vector<cv::vector<cv::Point3f> > objectPoints(1);
+    
+    std::vector<std::vector<cv::Point3f> > objectPoints(1);
     [self calcBoardCornerPositionsWithBoardSize:board_sz andSquareSize:square_sz andConers:objectPoints[0]];
+    
     objectPoints.resize(imagePoints.size(),objectPoints[0]);
     
     double rms = calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix,
@@ -266,6 +266,7 @@ float square_sz = 50;
     NSLog(@"Re-projection error: %f",rms);
     
     bool ok = checkRange(cameraMatrix) && checkRange(distCoeffs);
+    
     totalAvgErr = [self computeReprojectionErrorsWithobjectPoints:objectPoints andImagePoints:imagePoints andRotation:rvecs andTranslation:tvecs andCameraMatrix:cameraMatrix andDist:distCoeffs andPerErrors:reprojErrs];
     
     return ok;
@@ -274,10 +275,10 @@ float square_sz = 50;
 - (void) outputDataWithImageSize:(cv::Size &)imageSize
                  andCameraMatrix:(cv::Mat &)cameraMatrix
                          andDist:(cv::Mat &)distCoeffs
-                     andRotation:(cv::vector<cv::Mat>&) rvecs
-                  andTranslation:(cv::vector<cv::Mat>&) tvecs
-                        andError:(cv::vector<float>&)reprojErrs
-                  andImagePoints:(cv::vector<cv::vector<cv::Point2f>> &)imagePoints
+                     andRotation:(std::vector<cv::Mat>&) rvecs
+                  andTranslation:(std::vector<cv::Mat>&) tvecs
+                        andError:(std::vector<float>&)reprojErrs
+                  andImagePoints:(std::vector<std::vector<cv::Point2f>> &)imagePoints
                      andTotalErr:(double &)totalAvgErr
 {
     NSLog(@"image width: %d", imageSize.width);
@@ -289,10 +290,10 @@ float square_sz = 50;
 - (BOOL) runCalibrationAndOutputWithImageSize:(cv::Size &)imageSize
                               andCameraMatrix:(cv::Mat &)cameraMatrix
                                       andDist:(cv::Mat &)distCoeffs
-                               andImagePoints:(cv::vector<cv::vector<cv::Point2f>> &)imagePoints
+                               andImagePoints:(std::vector<std::vector<cv::Point2f>> &)imagePoints
 {
-    cv::vector<cv::Mat> rvecs, tvecs;
-    cv::vector<float> reprojErrs;
+    std::vector<cv::Mat> rvecs, tvecs;
+    std::vector<float> reprojErrs;
     double totalAvgErr = 0;
     
     BOOL ok;

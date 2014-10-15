@@ -10,6 +10,8 @@
 #import <opencv2/highgui/ios.h>
 #import <opencv2/imgproc/imgproc.hpp>
 #import <opencv2/calib3d/calib3d.hpp>
+#import <opencv2/highgui/cap_ios.h>
+#import <opencv2/objdetect/objdetect.hpp>
 #import <opencv2/core/core_c.h>
 #import <opencv2/core/core.hpp>
 
