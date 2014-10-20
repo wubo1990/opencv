@@ -175,7 +175,7 @@ cv::Size imageSize;
         //std::cout<<imagePoints[1]<<' ';
     
         drawChessboardCorners( image, board_sz, cv::Mat(pointBuf), found);
-        //imagePoints[imageCount].push_back(pointBuf);
+        imagePoints[imageCount].push_back(pointBuf);
         imageCount++;
     //std::cout<<imageCount<<' ';
     
