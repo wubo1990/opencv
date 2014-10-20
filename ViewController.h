@@ -14,7 +14,7 @@
 #import <opencv2/objdetect/objdetect.hpp>
 #import <opencv2/core/core_c.h>
 #import <opencv2/core/core.hpp>
-
+using namespace cv;
 
 @interface ViewController : UIViewController<CvPhotoCameraDelegate,
                                             UIImagePickerControllerDelegate,

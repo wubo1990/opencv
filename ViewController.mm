@@ -26,7 +26,10 @@ cv::Size board_sz;
 float square_sz = 50;
 int imageCount = 0;
 
-
+//imapge points
+std::vector<std::vector<cv::Point2f> > imagePoints(25);
+cv::Mat cameraMatrix, distCoeffs;
+cv::Size imageSize;
 
 - (void)viewDidLoad
 {
@@ -122,58 +125,34 @@ int imageCount = 0;
     isCapturing = NO;
 }
 
--(cv::Mat) nextView;
-    {
-    cv::Mat next;
-    if( inputCapture.isOpened() )
-    {
-        cv::Mat view0;
-        inputCapture >> view0;
-        view0.copyTo(next);
-    }
-    
-    return next;
-}
-
 //Image processing for camera calibration
+
 - (void)processImage:(cv::Mat&)image
 {
+    
     //set board width
     board_w = 7;
     //set board height
     board_h = 7;
-    
+    //cv::Mat next = image;
     //board size equal to board_w*board_h
     board_sz = cvSize(board_w, board_h);
     
-    //imapge points
-    std::vector<std::vector<cv::Point2f> > imagePoints;
-    cv::Mat cameraMatrix, distCoeffs;
-    cv::Size imageSize;
+
 //    clock_t prevTimestamp = 0;
     
     //maping corners on the cheese board
     const cv::Scalar RED(0,0,255), GREEN(0,255,0);
 //    const char ESC_KEY = 27;
 
-    for(int i = 0;;++i)
-    {
+    //for(int i = 0;;++i)
+    //{
         
         //Capturing the images for calibration
-        //if (imagePoints.size() >= 25) {
-        if (imageCount >= 25){
+        if (imagePoints.size() >= 25){
             if ([self runCalibrationAndOutputWithImageSize:imageSize andCameraMatrix:cameraMatrix andDist:distCoeffs andImagePoints:imagePoints]) {
                 return;
             }
-        }
-        
-        // If no more images then run calibration, save and stop loop.
-        if(image.empty())
-        {
-
-            if( imagePoints.size() > 0 )
-                [self runCalibrationAndOutputWithImageSize:imageSize andCameraMatrix:cameraMatrix andDist:distCoeffs andImagePoints:imagePoints];
-            //break;
         }
         
         imageSize = image.size();
@@ -192,16 +171,13 @@ int imageCount = 0;
             }
     
     
-        imagePoints.push_back(pointBuf);
-        std::cout<<imagePoints.size()<<' ';
+        
+        //std::cout<<imagePoints[1]<<' ';
     
         drawChessboardCorners( image, board_sz, cv::Mat(pointBuf), found);
-    
-    
-    imageCount++;
-    std::cout<<imageCount<<' ';
-    }
-    
+        //imagePoints[imageCount].push_back(pointBuf);
+        imageCount++;
+    //std::cout<<imageCount<<' ';
     
 }
 
