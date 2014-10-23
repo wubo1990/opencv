@@ -36,15 +36,15 @@ cv::Size imageSize;
     [super viewDidLoad];
 
     //Initial the photo camera
-    /*
+    
     photoCamera = [[CvPhotoCamera alloc]
                    initWithParentView:imageView];
     photoCamera.delegate = self;
     photoCamera.defaultAVCaptureDevicePosition = AVCaptureDevicePositionBack;
     photoCamera.defaultAVCaptureSessionPreset = AVCaptureSessionPresetPhoto;
     photoCamera.defaultAVCaptureVideoOrientation = AVCaptureVideoOrientationPortrait;
-     */
     
+    /*
     //Initial the video camera
     videoCamera = [[CvVideoCamera alloc]initWithParentView:imageView];
     videoCamera.delegate = self;
@@ -54,6 +54,7 @@ cv::Size imageSize;
     videoCamera.defaultFPS = 30;
     
     isCapturing = NO;
+    */
 }
 
 //UIButton for taking photo
@@ -175,8 +176,10 @@ cv::Size imageSize;
         //std::cout<<imagePoints[1]<<' ';
     
         drawChessboardCorners( image, board_sz, cv::Mat(pointBuf), found);
-        imagePoints[imageCount].push_back(pointBuf);
+    if(!pointBuf.empty()){
+        imagePoints.push_back(pointBuf);
         imageCount++;
+    }
     //std::cout<<imageCount<<' ';
     
 }
