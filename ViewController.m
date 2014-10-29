@@ -10,7 +10,7 @@
 #import <GalileoControl/GalileoControl.h>
 
 
-@interface ViewController ()
+@interface ViewController () <GCGalileoDelegate>
 
 @end
 
@@ -58,6 +58,25 @@ cv::Size imageSize;
     
     isCapturing = NO;
     */
+    [GCGalileo sharedGalileo].delegate = self;
+    [[GCGalileo sharedGalileo] waitForConnection];
+
+
+}
+
+- (void) galileoDidConnect
+{
+    UIAlertView* galileoConnectedAlert = [[UIAlertView alloc] initWithTitle:@"Galileo connected!"
+                                                                    message:nil
+                                                                   delegate:nil
+                                                          cancelButtonTitle:@"OK"
+                                                          otherButtonTitles:nil];
+    [galileoConnectedAlert show];
+}
+
+- (void) galileoDidDisconnect
+{
+    [[GCGalileo sharedGalileo] waitForConnection];
 }
 
 //UIButton for taking photo
@@ -135,6 +154,12 @@ cv::Size imageSize;
     GCPositionControl* panPositionControl = [[GCGalileo sharedGalileo] positionControlForAxis:GCControlAxisPan];
     [panPositionControl incrementTargetPosition:15.0 notifyDelegate:nil waitUntilStationary:NO];
     
+}
+
+- (void) controlDidReachTargetPosition
+{
+    // Re-enable the UI now that the target has been reached, assuming we are still connected to Galileo
+    if ([[GCGalileo sharedGalileo] isConnected]);
 }
 
 //Image processing for camera calibration
