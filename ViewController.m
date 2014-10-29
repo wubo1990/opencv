@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import <GalileoControl/GalileoControl.h>
 
 
 @interface ViewController ()
@@ -20,6 +21,8 @@
 @synthesize startCaptureButton;
 @synthesize saveButton;
 @synthesize videoCamera;
+@synthesize panButton;
+
 int board_w;
 int board_h;
 cv::Size board_sz;
@@ -124,6 +127,14 @@ cv::Size imageSize;
 {
     [videoCamera stop];
     isCapturing = NO;
+}
+
+
+-(IBAction)panButton:(id)sender{
+    
+    GCPositionControl* panPositionControl = [[GCGalileo sharedGalileo] positionControlForAxis:GCControlAxisPan];
+    [panPositionControl incrementTargetPosition:15.0 notifyDelegate:nil waitUntilStationary:NO];
+    
 }
 
 //Image processing for camera calibration

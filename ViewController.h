@@ -40,6 +40,7 @@ using namespace cv;
 @property (nonatomic, weak) IBOutlet UIBarButtonItem* startCaptureVideoButton;
 @property (nonatomic, weak) IBOutlet UIBarButtonItem* stopCaptureVideoButton;
 
+@property (nonatomic, weak) IBOutlet UIBarButtonItem* panButton;
 
 -(IBAction)takePhotoButtonPressed:(id)sender;
 -(IBAction)startCaptureButtonPressed:(id)sender;
@@ -48,5 +49,6 @@ using namespace cv;
 -(IBAction)startCaptureVideoButtonPressed:(id)sender;
 -(IBAction)stopCaptureVideoButtonPressed:(id)sender;
 
+-(IBAction)panButton:(id)sender;
 
 @end
